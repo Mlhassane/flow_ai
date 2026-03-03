@@ -108,13 +108,6 @@ class _FlashcardCardState extends State<FlashcardCard>
             Color(0xFF60A5FA), // blue-400
           ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Stack(
         children: [
@@ -276,13 +269,6 @@ class _FlashcardCardState extends State<FlashcardCard>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Stack(
         children: [

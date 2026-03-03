@@ -264,13 +264,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             border: Border.all(
               color: Theme.of(context).dividerColor.withOpacity(0.05),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.3 : 0.02),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,13 +359,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             border: Border.all(
               color: Theme.of(context).dividerColor.withOpacity(0.05),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

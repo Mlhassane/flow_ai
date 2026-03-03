@@ -234,13 +234,6 @@ class _CreateScreenState extends State<CreateScreen> {
                   image: FileImage(File(_selectedImage!.path)),
                   fit: BoxFit.cover,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
               ),
               child: Stack(
                 children: [
@@ -283,15 +276,6 @@ class _CreateScreenState extends State<CreateScreen> {
         border: Border.all(
           color: Theme.of(context).dividerColor.withOpacity(0.1),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(
-              Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.02,
-            ),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -330,7 +314,7 @@ class _CreateScreenState extends State<CreateScreen> {
             child: Text(
               'Capturez vos notes ou vos cours pour créer un quiz interactif.',
               style: TextStyle(
-                color: Colors.grey.shade500,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                 fontSize: 14,
                 height: 1.4,
               ),
@@ -462,13 +446,6 @@ class _CreateScreenState extends State<CreateScreen> {
         border: Border.all(
           color: Theme.of(context).dividerColor.withOpacity(0.1),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,9 +465,9 @@ class _CreateScreenState extends State<CreateScreen> {
             decoration: InputDecoration(
               labelText: 'Titre',
               hintText: 'ex: Cours de Biologie',
-              labelStyle: TextStyle(color: Colors.grey.shade400),
+              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -505,7 +482,7 @@ class _CreateScreenState extends State<CreateScreen> {
               Text(
                 'Nombre de questions',
                 style: TextStyle(
-                  color: Colors.grey.shade600,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -584,13 +561,6 @@ class _CreateScreenState extends State<CreateScreen> {
               : Border.all(
                   color: Theme.of(context).dividerColor.withOpacity(0.1),
                 ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Row(
           children: [

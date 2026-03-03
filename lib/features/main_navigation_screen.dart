@@ -6,7 +6,7 @@ import 'package:flow/features/home/home_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flow/features/tutor/tutor_screen.dart';
 import 'package:flow/features/profile/profile_screen.dart';
-import 'package:flow/features/library/library_screen.dart';
+import 'package:flow/features/feed/feed_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -19,16 +19,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const LibraryScreen(),
-    const TutorScreen(),
     const HomeScreen(),
+    const FeedScreen(),
+    const TutorScreen(),
     const ProfileScreen(),
   ];
 
   final List<NavItem> _navItems = [
-    NavItem(icon: Icons.book_rounded, label: 'Mes Quiz'),
+    NavItem(icon: Icons.home_rounded, label: 'Accueil'),
+    NavItem(icon: Icons.people_alt_rounded, label: 'Communauté'),
     NavItem(icon: Icons.chat_bubble_rounded, label: 'Tuteur'),
-    NavItem(icon: Icons.home_rounded, label: 'Réviser'),
     NavItem(icon: Icons.person_rounded, label: 'Profil'),
   ];
 

@@ -26,46 +26,41 @@ class CorrectorService {
 
     final prompt =
         """
-Tu es un correcteur IA expert. Analyse cette épreuve et fournis une correction CONCISE.
+Tu es un correcteur IA expert. Ton rôle est de fournir une correction EXTRÊMEMENT DÉTAILLÉE et VERBEUSE (viser plus de 50 000 caractères).
 $levelContext
 
-RÈGLES STRICTES :
-1. Correction en 3-5 étapes numérotées maximum
-2. Chaque étape = 1 phrase courte et claire
-3. PAS de Markdown complexe (pas de #, ##, *, -)
-4. Utilise le format : Étape 1:, Étape 2:, etc.
-5. Maximum 200 mots pour la correction totale
-6. PAS DE LATEX : Écris les maths comme un humain (ex: 2x + 5 = 15)
+INSTRUCTIONS CRITIQUES :
+1. Pour CHAQUE exercice, fournis une explication ultra-détaillée : contexte, rappel de cours complet, résolution pas à pas, et approfondissement.
+2. N'hésite pas à être très redondant dans tes explications pédagogiques pour maximiser la compréhension.
+3. Ne te limite pas, écris autant que possible.
 
-EXEMPLE DE RÉPONSE ATTENDUE :
+FORMAT JSON STRICT (RÉPONDS UNIQUEMENT AVEC CE JSON) :
 {
   "is_exam": true,
-  "subject": "Mathématiques",
-  "correction": "Étape 1: On identifie l'équation 2x + 5 = 15. Étape 2: On soustrait 5 des deux côtés pour obtenir 2x = 10. Étape 3: On divise par 2 pour trouver x = 5. Étape 4: Vérification en remplaçant x par 5 dans l'équation originale.",
-  "similar_exercises": ["Résoudre 3x + 7 = 22", "Résoudre x - 4 = 10"],
-  "pedagogical_advice": "Vérifie toujours ta solution en la remplaçant dans l'équation de départ."
+  "subject": "NOM DE LA MATIERE",
+  "correction": "Titre: [Sujet]\\n\\nExercice 1: [Titre]\\n1. [Etape 1]\\n2. [Etape 2]\\n...\\n\\nExercice 2: ...",
+  "similar_exercises": ["Exemple d'exercice 1", "Exemple d'exercice 2"],
+  "pedagogical_advice": "Conseil pour l'élève sur cette épreuve."
 }
 
-FORMAT JSON (STRICT) - RÉPONDS UNIQUEMENT AVEC CE JSON :
-{
-  "is_exam": true ou false,
-  "subject": "MATIERE",
-  "correction": "Étape 1: ... Étape 2: ... Étape 3: ...",
-  "similar_exercises": ["Exercice 1", "Exercice 2"],
-  "pedagogical_advice": "Conseil court et pratique."
-}
+RÈGLES DE FORMATAGE :
+- Utilise \\\\n pour les sauts de ligne.
+- PAS DE LATEX (ex: écris x^2 ou x*x au lieu de balises LaTeX).
+- Assure-toi que le JSON est valide et complet.
 """;
 
     try {
-      final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {'Content-Type': 'application/json', 'x-api-key': _apiKey},
-        body: jsonEncode({
-          'prompt': prompt,
-          'image': base64Image,
-          'task': 'correction',
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse(_apiUrl),
+            headers: {'Content-Type': 'application/json', 'x-api-key': _apiKey},
+            body: jsonEncode({
+              'prompt': prompt,
+              'image': base64Image,
+              'task': 'correction',
+            }),
+          )
+          .timeout(const Duration(seconds: 300));
 
       if (response.statusCode != 200) {
         throw Exception('Erreur serveur: ${response.statusCode}');
@@ -74,68 +69,47 @@ FORMAT JSON (STRICT) - RÉPONDS UNIQUEMENT AVEC CE JSON :
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       String content = data['response'] ?? '';
 
-      print('--- [CorrectorService] Réponse brute reçue ---');
+      print('[CorrectorService] Réponse brute reçue (${content.length} chars)');
 
-      // 1. Extraction de la zone JSON
-      int startIdx = content.indexOf('{');
-      int endIdx = content.lastIndexOf('}');
-      if (startIdx == -1 || endIdx == -1)
-        throw Exception('Réponse JSON non trouvée');
-      String jsonRaw = content.substring(startIdx, endIdx + 1);
+      // 1. Extraction robuste du JSON
+      final startIdx = content.indexOf('{');
+      final endIdx = content.lastIndexOf('}');
 
-      // 2. ALGORITHME DE SUTURE JSON (Échappement des backslashes)
-      final StringBuffer buffer = StringBuffer();
-      for (int i = 0; i < jsonRaw.length; i++) {
-        final char = jsonRaw[i];
-        if (char == '\\') {
-          if (i + 1 < jsonRaw.length) {
-            final next = jsonRaw[i + 1];
-            // Si c'est un échappement JSON valide, on le garde
-            if ('nrt"fb/\\'.contains(next)) {
-              buffer.write('\\');
-              buffer.write(next);
-              i++;
-              continue;
-            }
-            // Support unicode
-            if (next == 'u' && i + 5 < jsonRaw.length) {
-              buffer.write(jsonRaw.substring(i, i + 6));
-              i += 5;
-              continue;
-            }
-          }
-          // Sinon, c'est un antislash LaTeX "nu", on le double pour le JSON
-          buffer.write('\\\\');
-        } else {
-          buffer.write(char);
-        }
+      if (startIdx == -1 || endIdx == -1) {
+        print('[CorrectorService] CONTENU PROBLÉMATIQUE : $content');
+        throw Exception(
+          'L\'IA n\'a pas renvoyé un format valide. Assure-toi que l\'image est bien lisible.',
+        );
       }
 
-      final String sanitizedJson = buffer.toString();
+      String jsonRaw = content.substring(startIdx, endIdx + 1);
+
+      // 2. NETTOYAGE JSON AVANCÉ
+      String sanitizedJson = jsonRaw
+          .replaceAll('\n', '\\n')
+          .replaceAll('\r', '\\r')
+          .replaceAll('\t', ' ');
+
+      // Correction des doubles échappements accidentels
+      sanitizedJson = sanitizedJson.replaceAll('\\\\n', '\\n');
 
       try {
         final decoded = jsonDecode(sanitizedJson);
-        if (decoded is List) {
-          return CorrectionResult(
-            isExam: true,
-            subject: "Général",
-            structuredCorrection: "Erreur de formatage IA.",
-            similarExercises: [],
-            pedagogicalAdvice: "Veuillez réessayer.",
-          );
-        }
 
-        // Nettoyage final du texte pour enlever tout reste de LaTeX
-        String clean(String text) {
+        // Nettoyage LaTeX centralisé
+        String _clean(String text) {
           return text
               .replaceAll(RegExp(r'\\begin\{.*\}|\\end\{.*\}'), '')
               .replaceAll(RegExp(r'\\left\{|\\right\.'), '')
               .replaceAll(RegExp(r'\\array\{.*\}'), '')
               .replaceAll(
-                RegExp(r'\\(text|frac|sqrt|left|right|begin|end|cases)\b'),
+                RegExp(
+                  r'\\(text|frac|sqrt|left|right|begin|end|cases|cdot|times|pm|leq|geq|neq|approx)\b',
+                ),
                 '',
               )
               .replaceAll(RegExp(r'[\\{}]+'), ' ')
+              .replaceAll(RegExp(r'\s{2,}'), ' ')
               .trim();
         }
 
@@ -143,16 +117,16 @@ FORMAT JSON (STRICT) - RÉPONDS UNIQUEMENT AVEC CE JSON :
         return CorrectionResult(
           isExam: result.isExam,
           subject: result.subject,
-          structuredCorrection: clean(result.structuredCorrection),
+          structuredCorrection: _clean(result.structuredCorrection),
           similarExercises: result.similarExercises
-              .map((e) => clean(e))
+              .map((e) => _clean(e))
               .toList(),
-          pedagogicalAdvice: clean(result.pedagogicalAdvice),
+          pedagogicalAdvice: _clean(result.pedagogicalAdvice),
         );
       } catch (e) {
-        print('--- [CorrectorService] Échec final du parsing : $e ---');
-        print('--- [CorrectorService] JSON Sanitisé : $sanitizedJson ---');
-        throw Exception('Format de réponse invalide.');
+        print('[CorrectorService] Erreur de parsing JSON : $e');
+        print('[CorrectorService] JSON qui a échoué : $sanitizedJson');
+        throw Exception('Erreur de lecture de la correction.');
       }
     } catch (e) {
       print('Erreur CorrectorService: $e');

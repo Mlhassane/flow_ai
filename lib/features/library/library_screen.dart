@@ -9,7 +9,6 @@ import 'package:flow/features/flashcard_review_screen.dart';
 import 'package:flow/features/create/create_screen.dart';
 import 'package:flow/services/streak_service.dart';
 import 'package:flow/widgets/cauri_icon.dart';
-import 'package:flutter/services.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -217,17 +216,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
               border: Border.all(
                 color: Theme.of(context).dividerColor.withOpacity(0.05),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(
-                    Theme.of(context).brightness == Brightness.dark
-                        ? 0.3
-                        : 0.05,
-                  ),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
             child: Icon(
               icon,
@@ -253,12 +241,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
             Icon(
               Icons.library_books_outlined,
               size: 80,
-              color: Colors.grey.shade300,
+              color: Theme.of(context).dividerColor.withOpacity(0.1),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Aucun deck pour le moment',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -322,17 +313,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   border: Border.all(
                     color: Theme.of(context).dividerColor.withOpacity(0.05),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? 0.3
-                            : 0.02,
-                      ),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,13 +401,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).dividerColor.withOpacity(0.1),
+              width: 1,
             ),
-          ],
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -494,9 +473,70 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 );
               },
             ),
+            const SizedBox(height: 16),
+            _buildOptionItem(
+              icon: Icons.share_rounded,
+              label: 'Partager avec la communauté',
+              color: Colors.purple,
+              onTap: () {
+                Navigator.pop(context);
+                _showShareConfirmation(deck);
+              },
+            ),
             const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showShareConfirmation(QuizDeck deck) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.share_rounded, color: Colors.purple),
+            SizedBox(width: 10),
+            Text('Partager le deck'),
+          ],
+        ),
+        content: Text(
+          'Voulez-vous partager "${deck.title}" avec la communauté Flow ?\nD\'autres étudiants pourront l\'utiliser pour réviser.',
+          style: const TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.green,
+                  content: Text(
+                    '"${deck.title}" a été partagé avec succès ! 🚀',
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Partager'),
+          ),
+        ],
       ),
     );
   }
@@ -539,7 +579,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+            ),
           ],
         ),
       ),

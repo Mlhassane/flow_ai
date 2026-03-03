@@ -185,17 +185,6 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
                 border: Border.all(
                   color: Theme.of(context).dividerColor.withOpacity(0.05),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? 0.3
-                          : 0.02,
-                    ),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -421,17 +410,9 @@ class QuizResultScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(
-                          Theme.of(context).brightness == Brightness.dark
-                              ? 0.4
-                              : 0.1,
-                        ),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+                    border: Border.all(
+                      color: Theme.of(context).dividerColor.withOpacity(0.05),
+                    ),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flow/core/theme.dart';
 import 'package:flow/models/correction.dart';
 import 'package:flow/services/corrector_service.dart';
+import 'package:flow/services/storage_service.dart';
+import 'package:flow/models/quiz_deck.dart';
+import 'package:flow/models/quiz_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flow/widgets/cauri_icon.dart';
@@ -17,12 +20,14 @@ class CorrectorScreen extends StatefulWidget {
 
 class _CorrectorScreenState extends State<CorrectorScreen> {
   final CorrectorService _correctorService = CorrectorService();
+  final StorageService _storageService = StorageService();
   final ImagePicker _picker = ImagePicker();
   final User _currentUser = User.mock();
 
   File? _selectedImage;
   CorrectionResult? _result;
   bool _isLoading = false;
+  bool _isSaved = false;
 
   Future<void> _pickImage(ImageSource source) async {
     final XFile? image = await _picker.pickImage(source: source);
@@ -30,6 +35,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
       setState(() {
         _selectedImage = File(image.path);
         _result = null;
+        _isSaved = false;
       });
       _processImage();
     }
@@ -54,6 +60,41 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erreur : $e')));
+    }
+  }
+
+  Future<void> _saveExercises() async {
+    if (_result == null || _result!.similarExercises.isEmpty) return;
+
+    final deckId = DateTime.now().millisecondsSinceEpoch.toString();
+    final cards = _result!.similarExercises.asMap().entries.map((entry) {
+      return QuizCard(
+        id: '${deckId}_${entry.key}',
+        question: 'Exercice ${_result!.subject}: Pratique ${entry.key + 1}',
+        answer: entry.value,
+        explanation: 'Généré à partir de ton épreuve corrigée.',
+      );
+    }).toList();
+
+    final deck = QuizDeck(
+      id: deckId,
+      title:
+          'Pratique: ${_result!.subject} (${DateTime.now().day}/${DateTime.now().month})',
+      createdAt: DateTime.now(),
+      cards: cards,
+    );
+
+    await _storageService.saveDeck(deck);
+    setState(() => _isSaved = true);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Exercices enregistrés dans ta bibliothèque !'),
+          backgroundColor: Colors.green.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -124,7 +165,10 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
             const SizedBox(height: 16),
             Text(
               'Prends en photo ton sujet d\'examen. L\'IA va le corriger et t\'expliquer les points clés.',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
@@ -159,9 +203,11 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 2.seconds),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Cela peut prendre quelques secondes',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+            ),
           ),
         ],
       ),
@@ -245,12 +291,12 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
             color: Colors.amber,
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'POUR T\'ENTRAÎNER (LOGIQUE SIMILAIRE)',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
               letterSpacing: 1,
             ),
           ),
@@ -262,9 +308,23 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
           _buildActionButton(
             icon: Icons.refresh_rounded,
             label: 'Nouvelle photo au tableau',
-            onTap: () => setState(() => _result = null),
+            onTap: () => setState(() {
+              _result = null;
+              _isSaved = false;
+            }),
             isPrimary: false,
           ),
+          if (_result != null &&
+              _result!.similarExercises.isNotEmpty &&
+              !_isSaved) ...[
+            const SizedBox(height: 12),
+            _buildActionButton(
+              icon: Icons.bookmark_add_rounded,
+              label: 'Enregistrer pour réviser',
+              onTap: _saveExercises,
+              isPrimary: true,
+            ),
+          ],
           const SizedBox(height: 100), // Spacing for bottom nav
         ],
       ),
@@ -290,14 +350,9 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
         borderRadius: BorderRadius.circular(24),
         border: isBlackboard
             ? Border.all(color: color.withOpacity(0.3), width: 1)
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+            : Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.05),
+              ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,15 +437,6 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
               : Border.all(
                   color: Theme.of(context).dividerColor.withOpacity(0.1),
                 ),
-          boxShadow: isPrimary
-              ? [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

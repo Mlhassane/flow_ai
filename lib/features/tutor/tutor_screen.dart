@@ -200,17 +200,6 @@ class _TutorScreenState extends State<TutorScreen> {
                 border: Border.all(
                   color: Theme.of(context).dividerColor.withOpacity(0.05),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? 0.3
-                          : 0.05,
-                    ),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: Icon(
                 Icons.delete_outline_rounded,
@@ -243,15 +232,6 @@ class _TutorScreenState extends State<TutorScreen> {
               : Border.all(
                   color: Theme.of(context).dividerColor.withOpacity(0.05),
                 ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(
-                Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.03,
-              ),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
         ),
         child: Text(
           content,
