@@ -22,20 +22,23 @@ class AIService {
     final prompt =
         """
 AGIS EN TANT QU'EXPERT PÉDAGOGIQUE. $levelContext
-Analyse cette image de cours et génère un quiz de $numQuestions questions.
+Génère un quiz FLASH de $numQuestions questions.
 
-CONSIGNES :
-1. Questions adaptées au niveau.
-2. Réponse claire et explication pédagogique pour chaque question.
-3. Utilise le LaTeX NORMALEMENT (ex: \\frac, \\begin{cases}).
-4. Ne réponds QUE par le JSON.
+CONSIGNES DE LISIBILITÉ (CRITIQUE) :
+1. PAS DE LATEX : N'utilise JAMAIS de balises comme \\begin{cases}, \\end{cases}, \\frac, \\left, \\right.
+2. NOTATION HUMAINE : Pour les systèmes d'équations, utilise une présentation simple. 
+   Exemple : 
+   (1) 2x + 3y = 4
+   (2) x - y = 2
+3. RÉPONSES COURTES : Va droit à l'essentiel.
+4. EXPLICATIONS FLASH : Maximum 2 phrases.
 
-FORMAT JSON ATTENDU :
+FORMAT JSON :
 [
   {
-    "question": "Texte",
-    "answer": "Réponse",
-    "explanation": "Explication"
+    "question": "Texte sans code",
+    "answer": "Réponse directe",
+    "explanation": "Explication simple"
   }
 ]
 """;
@@ -72,6 +75,7 @@ FORMAT JSON ATTENDU :
           'prompt': prompt,
           'image': base64Image,
           'num_questions': numQuestions,
+          'task': 'quiz',
         }),
       );
 
@@ -131,32 +135,44 @@ FORMAT JSON ATTENDU :
       dynamic parsedJson = jsonDecode(jsonString);
       List<dynamic> jsonList;
 
-      if (parsedJson is Map && parsedJson.containsKey('quiz')) {
-        jsonList = parsedJson['quiz'];
-      } else if (parsedJson is Map && parsedJson.containsKey('questions')) {
-        jsonList = parsedJson['questions'];
-      } else if (parsedJson is List) {
+      if (parsedJson is List) {
         jsonList = parsedJson;
+      } else if (parsedJson is Map &&
+          (parsedJson.containsKey('quiz') ||
+              parsedJson.containsKey('questions'))) {
+        jsonList = parsedJson['quiz'] ?? parsedJson['questions'];
       } else {
-        if (parsedJson is Map &&
-            parsedJson.values.isNotEmpty &&
-            parsedJson.values.first is List) {
-          jsonList = parsedJson.values.first;
-        } else {
-          throw Exception('Format JSON inattendu : $parsedJson');
-        }
+        throw Exception('Format JSON inattendu');
       }
 
       print('--- [AIService] ${jsonList.length} questions trouvées ---');
 
       return jsonList.map((item) {
+        String q = item['question']?.toString() ?? 'Question illisible';
+        String a = item['answer']?.toString() ?? 'Réponse non trouvée';
+        String e = item['explanation']?.toString() ?? '';
+
+        // Nettoyage final des restes de LaTeX
+        String clean(String text) {
+          return text
+              .replaceAll(RegExp(r'\\begin\{.*\}|\\end\{.*\}'), '')
+              .replaceAll(RegExp(r'\\left\{|\\right\.'), '')
+              .replaceAll(RegExp(r'\\array\{.*\}'), '')
+              .replaceAll(
+                RegExp(r'\\(text|frac|sqrt|left|right|begin|end|cases)\b'),
+                '',
+              )
+              .replaceAll(RegExp(r'[\\{}]+'), ' ')
+              .trim();
+        }
+
         return QuizCard(
           id:
               item['id']?.toString() ??
               DateTime.now().millisecondsSinceEpoch.toString(),
-          question: item['question']?.toString() ?? 'Question illisible',
-          answer: item['answer']?.toString() ?? 'Réponse non trouvée',
-          explanation: item['explanation']?.toString() ?? '',
+          question: clean(q),
+          answer: clean(a),
+          explanation: clean(e),
         );
       }).toList();
     } catch (e) {
