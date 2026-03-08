@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flow/models/user.dart';
+import 'package:flow/models/quiz_card.dart';
 import 'package:flow/services/tutor_service.dart';
+import 'package:flow/services/storage_service.dart';
 
 class TutorScreen extends StatefulWidget {
   const TutorScreen({super.key});
@@ -14,18 +16,28 @@ class _TutorScreenState extends State<TutorScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final TutorService _tutorService = TutorService();
+  final StorageService _storageService = StorageService();
   final List<Map<String, String>> _messages = [];
+  List<QuizCard> _contextCards = [];
   bool _isLoading = false;
   final User _user = User.mock();
 
   @override
   void initState() {
     super.initState();
+    _loadContext();
     // Message de bienvenue
     _messages.add({
       'role': 'ai',
       'content':
           'Bonjour ! Je suis ton tuteur personnel. Pose-moi une question sur tes cours ou demande-moi de t\'expliquer un concept complexe.',
+    });
+  }
+
+  Future<void> _loadContext() async {
+    final cards = await _storageService.getDueCards();
+    setState(() {
+      _contextCards = cards;
     });
   }
 
@@ -45,6 +57,7 @@ class _TutorScreenState extends State<TutorScreen> {
       final response = await _tutorService.sendMessage(
         userMessage,
         userLevel: _user.level,
+        cards: _contextCards,
       );
       setState(() {
         _messages.add({'role': 'ai', 'content': response});

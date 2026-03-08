@@ -9,8 +9,8 @@ import 'package:flow/features/create/create_screen.dart';
 import 'package:flow/features/library/library_screen.dart';
 import 'package:flow/features/corrector/corrector_screen.dart';
 import 'package:flow/features/tutor/tutor_screen.dart';
+import 'package:flow/features/exam/exam_setup_screen.dart';
 import 'package:flow/services/streak_service.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +20,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   int _actualStreak = 0;
   List<QuizCard> _dueCards = [];
   bool _isLoading = true;
@@ -36,8 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final dueCards = await StorageService().getDueCards();
     final streak = await StreakService().getStreak();
-
-
 
     setState(() {
       _dueCards = dueCards;
@@ -148,13 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 if (_actualStreak > 0) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.orange.withOpacity(0.3),
-                      ),
+                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
                     ),
                     child: Row(
                       children: [
@@ -184,21 +182,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: CircleAvatar(
                     radius: 24,
-                    backgroundColor: isDark 
-                        ? AppTheme.primaryColor.withOpacity(0.2) 
+                    backgroundColor: isDark
+                        ? AppTheme.primaryColor.withOpacity(0.2)
                         : const Color(0xFFE3F2FD),
-                    child: const Icon(Icons.person_rounded, color: AppTheme.primaryColor),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                 ),
               ],
             ),
           ],
         ),
-      ]
+      ],
     );
   }
-
-
 
   Widget _buildSearchBar(bool isDark) {
     return Container(
@@ -208,19 +207,26 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(25),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(isDark ? 0.1 : 0.05),
+              color: Theme.of(
+                context,
+              ).dividerColor.withOpacity(isDark ? 0.1 : 0.05),
             ),
           ),
           child: Row(
             children: [
-              Icon(Icons.search, color: isDark ? Colors.grey.shade500 : Colors.grey.shade400),
+              Icon(
+                Icons.search,
+                color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'trouve des fiches',
                     hintStyle: TextStyle(
-                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                      color: isDark
+                          ? Colors.grey.shade500
+                          : Colors.grey.shade400,
                       fontSize: 15,
                     ),
                     border: InputBorder.none,
@@ -311,6 +317,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        _buildBentoCard(
+          'Simulateur d\'Examen',
+          'Révise en conditions réelles (BAC, DEF, BEPC)',
+          Icons.school_rounded,
+          [const Color(0xFF3B82F6), const Color(0xFF60A5FA)],
+          4,
+          big: true,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ExamSetupScreen(),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -325,83 +346,83 @@ class _HomeScreenState extends State<HomeScreen> {
     VoidCallback? onTap,
   }) {
     return Material(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(32),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(32),
-        child: Container(
-          height: big ? 180 : 160,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(32),
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
-            ),
-          ),
-          child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            gradient[0].withOpacity(0.2),
-                            gradient[1].withOpacity(0.1),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
+            child: Container(
+              height: big ? 180 : 160,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.05),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          gradient[0].withOpacity(0.2),
+                          gradient[1].withOpacity(0.1),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      child: Icon(icon, color: gradient[0], size: 28),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const Spacer(),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
-                      ),
+                    child: Icon(icon, color: gradient[0], size: 28),
+                  ),
+                  const Spacer(),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            big ? subtitle : 'Ouvrir',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.5),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (!big)
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 14,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          big ? subtitle : 'Ouvrir',
+                          style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.3),
+                            ).colorScheme.onSurface.withOpacity(0.5),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
-                      ],
-                    ),
-                  ],
-                ), // Close Column
-              ), // Close Container
-        ), // Close InkWell
-      ) // Close Material
-      .animate()
-      .fadeIn(delay: (400 + 100 * index).ms)
-      .slideY(begin: 0.1, end: 0, curve: Curves.easeOut);
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (!big)
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 14,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.3),
+                        ),
+                    ],
+                  ),
+                ],
+              ), // Close Column
+            ), // Close Container
+          ), // Close InkWell
+        ) // Close Material
+        .animate()
+        .fadeIn(delay: (400 + 100 * index).ms)
+        .slideY(begin: 0.1, end: 0, curve: Curves.easeOut);
   }
 
   Widget _buildRevisionSection() {
