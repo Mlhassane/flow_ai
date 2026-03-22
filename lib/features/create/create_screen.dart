@@ -8,6 +8,8 @@ import 'package:flow/features/quiz/quiz_screen.dart';
 import 'package:flow/models/quiz_deck.dart';
 import 'package:flow/services/storage_service.dart';
 import 'package:flow/models/user.dart';
+import 'package:provider/provider.dart';
+import 'package:flow/providers/user_provider.dart';
 
 class CreateScreen extends StatefulWidget {
   const CreateScreen({super.key});
@@ -22,6 +24,11 @@ class _CreateScreenState extends State<CreateScreen> {
   double _numQuestions = 5.0;
   final TextEditingController _titleController = TextEditingController();
   bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -75,21 +82,30 @@ class _CreateScreenState extends State<CreateScreen> {
       return;
     }
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    if (!userProvider.hasEnoughCauris(UserProvider.costQuiz)) {
+      _showError('Pas assez de Cauris ! Il te faut ${UserProvider.costQuiz} 🐚');
+      return;
+    }
+
     setState(() => _isProcessing = true);
 
     final aiService = AIService();
     final storageService = StorageService();
-    final user = User.mock();
 
     try {
-      // 1. Génération par l'IA avec le nombre de questions choisi
       final quizCards = await aiService.generateQuizFromImage(
         File(_selectedImage!.path),
         numQuestions: _numQuestions.toInt(),
-        userLevel: user.level,
+        userLevel: userProvider.user?.level,
+        country: userProvider.user?.country,
+        examType: userProvider.user?.examType,
       );
 
       if (mounted) {
+        // On dépense les Cauris SEULEMENT si la génération a réussi
+        await userProvider.spendCauris(UserProvider.costQuiz);
         // 2. Création et Sauvegarde du Deck
         final newDeck = QuizDeck(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -99,6 +115,8 @@ class _CreateScreenState extends State<CreateScreen> {
         );
 
         await storageService.saveDeck(newDeck);
+
+        if (!mounted) return;
 
         setState(() => _isProcessing = false);
         _showSuccess();
@@ -170,7 +188,7 @@ class _CreateScreenState extends State<CreateScreen> {
                         center: const Alignment(-0.8, -0.6),
                         radius: 1.2,
                         colors: [
-                          AppTheme.primaryColor.withOpacity(0.05),
+                          AppTheme.primaryColor.withValues(alpha: 0.05),
                           Colors.transparent,
                         ],
                       ),
@@ -228,7 +246,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
                 image: DecorationImage(
                   image: FileImage(File(_selectedImage!.path)),
@@ -245,7 +263,7 @@ class _CreateScreenState extends State<CreateScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -274,7 +292,7 @@ class _CreateScreenState extends State<CreateScreen> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
         ),
       ),
       child: Column(
@@ -283,13 +301,13 @@ class _CreateScreenState extends State<CreateScreen> {
           Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.05),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.camera_enhance_rounded,
                   size: 48,
-                  color: AppTheme.primaryColor.withOpacity(0.8),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.8),
                 ),
               )
               .animate(onPlay: (c) => c.repeat(reverse: true))
@@ -314,7 +332,7 @@ class _CreateScreenState extends State<CreateScreen> {
             child: Text(
               'Capturez vos notes ou vos cours pour créer un quiz interactif.',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
                 height: 1.4,
               ),
@@ -339,7 +357,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 color: Theme.of(context).colorScheme.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
               ),
               child: Icon(
@@ -372,7 +390,7 @@ class _CreateScreenState extends State<CreateScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -402,7 +420,7 @@ class _CreateScreenState extends State<CreateScreen> {
                 'Extraction des concepts clés et génération des fiches de révision...',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 13,
                   height: 1.5,
                 ),
@@ -410,7 +428,7 @@ class _CreateScreenState extends State<CreateScreen> {
               .animate(onPlay: (c) => c.repeat())
               .shimmer(
                 duration: 2.seconds,
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
               ),
         ],
       ),
@@ -444,7 +462,7 @@ class _CreateScreenState extends State<CreateScreen> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
         ),
       ),
       child: Column(
@@ -465,9 +483,9 @@ class _CreateScreenState extends State<CreateScreen> {
             decoration: InputDecoration(
               labelText: 'Titre',
               hintText: 'ex: Cours de Biologie',
-              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+              fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -482,7 +500,7 @@ class _CreateScreenState extends State<CreateScreen> {
               Text(
                 'Nombre de questions',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -502,11 +520,11 @@ class _CreateScreenState extends State<CreateScreen> {
               activeTrackColor: Theme.of(context).colorScheme.onSurface,
               inactiveTrackColor: Theme.of(
                 context,
-              ).dividerColor.withOpacity(0.1),
+              ).dividerColor.withValues(alpha: 0.1),
               thumbColor: Theme.of(context).colorScheme.onSurface,
               overlayColor: Theme.of(
                 context,
-              ).colorScheme.onSurface.withOpacity(0.1),
+              ).colorScheme.onSurface.withValues(alpha: 0.1),
             ),
             child: Slider(
               value: _numQuestions,
@@ -559,7 +577,7 @@ class _CreateScreenState extends State<CreateScreen> {
           border: isPrimary
               ? null
               : Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
         ),
         child: Row(
@@ -568,8 +586,8 @@ class _CreateScreenState extends State<CreateScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isPrimary
-                    ? Theme.of(context).colorScheme.surface.withOpacity(0.2)
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                    ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.2)
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -596,7 +614,7 @@ class _CreateScreenState extends State<CreateScreen> {
               Icons.chevron_right_rounded,
               color: isPrimary
                   ? Colors.white54
-                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
           ],
         ),

@@ -71,7 +71,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
             bottom: 10,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(24),
               ),
             ),
@@ -83,7 +83,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
             bottom: 20,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(24),
               ),
             ),
@@ -143,7 +143,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -164,7 +164,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
@@ -208,7 +208,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -216,14 +216,14 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                   children: [
                     Icon(
                       Icons.touch_app_rounded,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       size: 16,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Appuyez pour voir la réponse',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),

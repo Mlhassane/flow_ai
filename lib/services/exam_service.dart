@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flow/models/exam.dart';
@@ -85,7 +86,7 @@ FORMAT JSON (uniquement un tableau) :
         throw Exception('Erreur API: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erreur ExamService: $e');
+      debugPrint('Erreur ExamService: $e');
       rethrow;
     }
   }

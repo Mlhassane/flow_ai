@@ -61,7 +61,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         center: const Alignment(0.8, -0.6),
                         radius: 1.2,
                         colors: [
-                          AppTheme.primaryColor.withOpacity(0.05),
+                          AppTheme.primaryColor.withValues(alpha: 0.05),
                           Colors.transparent,
                         ],
                       ),
@@ -85,7 +85,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   child: _isLoading
                       ? Center(
                           child: CircularProgressIndicator(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                           ),
                         )
                       : _buildDeckGrid(),
@@ -127,7 +127,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       fontSize: 14,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.5),
+                      ).colorScheme.onSurface.withValues(alpha: 0.5),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -170,11 +170,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.1) : const Color(0xFFFEF3C7),
+        color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFFEF3C7),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark
-              ? Colors.white.withOpacity(0.2)
+              ? Colors.white.withValues(alpha: 0.2)
               : const Color(0xFFFDE68A),
           width: 1,
         ),
@@ -214,7 +214,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   : Theme.of(context).colorScheme.surface,
               shape: BoxShape.circle,
               border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.05),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
               ),
             ),
             child: Icon(
@@ -241,13 +241,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
             Icon(
               Icons.library_books_outlined,
               size: 80,
-              color: Theme.of(context).dividerColor.withOpacity(0.1),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
             ),
             const SizedBox(height: 16),
             Text(
               'Aucun deck pour le moment',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                 fontSize: 16,
               ),
             ),
@@ -311,7 +311,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                    color: Theme.of(context).dividerColor.withOpacity(0.05),
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
                   ),
                 ),
                 child: Column(
@@ -320,7 +320,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
@@ -372,7 +372,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: deck.masteryProgress,
-                            backgroundColor: AppTheme.primaryColor.withOpacity(
+                            backgroundColor: AppTheme.primaryColor.withValues(alpha: 
                               0.05,
                             ),
                             valueColor: AlwaysStoppedAnimation<Color>(
@@ -403,7 +403,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           border: Border(
             top: BorderSide(
-              color: Theme.of(context).dividerColor.withOpacity(0.1),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -415,7 +415,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).dividerColor.withOpacity(0.1),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -554,17 +554,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: Theme.of(context).dividerColor.withOpacity(0.05),
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
           ),
           borderRadius: BorderRadius.circular(16),
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.02),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.02),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color),
@@ -581,7 +581,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             const Spacer(),
             Icon(
               Icons.chevron_right_rounded,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
           ],
         ),
@@ -603,8 +603,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
           TextButton(
             onPressed: () async {
               await StorageService().deleteDeck(deck.id);
-              Navigator.pop(context);
-              _loadDecks();
+              if (mounted) {
+                Navigator.pop(context);
+                _loadDecks();
+              }
             },
             child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
           ),

@@ -20,7 +20,7 @@ class ReadingScreen extends StatelessWidget {
               color: Theme.of(context).colorScheme.surface,
               shape: BoxShape.circle,
               border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.1),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
               ),
             ),
             child: IconButton(
@@ -85,7 +85,7 @@ class ReadingScreen extends StatelessWidget {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
             ),
           ),
           padding: const EdgeInsets.all(30),
@@ -104,7 +104,7 @@ class ReadingScreen extends StatelessWidget {
               const SizedBox(height: 30),
               ...deck.cards
                   .map((card) => _buildCardSection(context, card))
-                  .toList(),
+                  ,
             ],
           ),
         ),
@@ -133,7 +133,7 @@ class ReadingScreen extends StatelessWidget {
               card.explanation,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -161,7 +161,7 @@ class ReadingScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withOpacity(faded ? 0.1 : 1),
+                ).colorScheme.onSurface.withValues(alpha: faded ? 0.1 : 1),
                 shape: BoxShape.circle,
               ),
             ),
@@ -175,7 +175,7 @@ class ReadingScreen extends StatelessWidget {
                 fontWeight: faded ? FontWeight.normal : FontWeight.bold,
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withOpacity(faded ? 0.4 : 0.9),
+                ).colorScheme.onSurface.withValues(alpha: faded ? 0.4 : 0.9),
                 height: 1.4,
               ),
             ),

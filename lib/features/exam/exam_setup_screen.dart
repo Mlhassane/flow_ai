@@ -121,7 +121,7 @@ class _ExamSetupScreenState extends State<ExamSetupScreen> {
                       selected: _selectedLevel == level,
                       onSelected: (val) =>
                           setState(() => _selectedLevel = level),
-                      selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+                      selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
                       labelStyle: TextStyle(
                         color: _selectedLevel == level
                             ? AppTheme.primaryColor
@@ -140,7 +140,7 @@ class _ExamSetupScreenState extends State<ExamSetupScreen> {
             const Text('Pays', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             DropdownButtonFormField<Country>(
-              value: _selectedCountry,
+              initialValue: _selectedCountry,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surface,

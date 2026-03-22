@@ -4,24 +4,28 @@ import 'package:flow/core/theme.dart';
 import 'package:flow/services/theme_service.dart';
 import 'package:flow/features/onboarding/onboarding_screen.dart';
 import 'package:flow/features/main_navigation_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flow/services/storage_service.dart';
+import 'package:flow/providers/user_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final isFirstRun = prefs.getBool('is_first_run') ?? true;
+  final storage = StorageService();
+  final onboardingComplete = await storage.isOnboardingComplete();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeService(),
-      child: MyApp(isFirstRun: isFirstRun),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeService()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: MyApp(showOnboarding: !onboardingComplete),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final bool isFirstRun;
-  const MyApp({super.key, required this.isFirstRun});
+  final bool showOnboarding;
+  const MyApp({super.key, required this.showOnboarding});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +37,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeService.themeMode,
-      home: isFirstRun
+      home: showOnboarding
           ? const OnboardingScreen()
           : const MainNavigationScreen(),
     );

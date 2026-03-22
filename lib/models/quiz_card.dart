@@ -19,7 +19,7 @@ class QuizCard {
     this.interval = 0,
     this.repetitions = 0,
     this.easeFactor = 2.5,
-  }) : this.nextReview = nextReview ?? DateTime.now();
+  }) : nextReview = nextReview ?? DateTime.now();
 
   QuizCard copyWith({
     String? id,

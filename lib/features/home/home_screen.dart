@@ -12,6 +12,10 @@ import 'package:flow/features/tutor/tutor_screen.dart';
 import 'package:flow/features/exam/exam_setup_screen.dart';
 import 'package:flow/services/streak_service.dart';
 
+import 'package:flow/providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:flow/models/user.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -32,21 +36,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadStats() async {
     setState(() => _isLoading = true);
-
     final dueCards = await StorageService().getDueCards();
     final streak = await StreakService().getStreak();
 
     setState(() {
       _dueCards = dueCards;
-
       _actualStreak = streak;
       _isLoading = false;
     });
   }
 
+  int _getDaysUntilExam(User? user) {
+    // Dates approximatives Examens Sahel 2026
+    final now = DateTime.now();
+    DateTime examDate;
+    
+    if (user?.examType == 'BAC') {
+      examDate = DateTime(2026, 6, 17);
+    } else if (user?.examType == 'DEF' || user?.examType == 'BEPC') {
+      examDate = DateTime(2026, 6, 10);
+    } else {
+      examDate = DateTime(2026, 6, 30); // Par défaut fin juin
+    }
+
+    if (now.isAfter(examDate)) return 0;
+    return examDate.difference(now).inDays;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // On passe maintenant le user aux méthodes qui l'utilisent
+    final daysLeft = _getDaysUntilExam(user);
 
     return Scaffold(
       body: Stack(
@@ -61,7 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         center: const Alignment(-0.8, -0.6),
                         radius: 1.2,
                         colors: [
-                          AppTheme.primaryColor.withOpacity(0.05),
+                          AppTheme.primaryColor.withValues(alpha: 0.05),
+                          const Color(0xFFFACC15).withValues(alpha: 0.02),
                           Colors.transparent,
                         ],
                       ),
@@ -81,28 +106,41 @@ class _HomeScreenState extends State<HomeScreen> {
             child: RefreshIndicator(
               onRefresh: _loadStats,
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    _buildHeader(isDark),
-                    const SizedBox(height: 20),
-                    _buildRevisionSection(),
+                    _buildHeader(isDark, user),
                     const SizedBox(height: 24),
-                    _buildSearchBar(isDark),
+                    _buildCountdownSection(daysLeft, user),
+                    const SizedBox(height: 24),
+                    _buildRevisionSection(),
                     const SizedBox(height: 32),
-                    const Text(
-                      'Mes outils',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    // _buildSearchBar(isDark), // TODO: Activer quand fonctionnel
+                    // const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Outils d\'étude',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        Icon(
+                          Icons.grid_view_rounded,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     _buildToolsGrid(),
-                    const SizedBox(height: 32),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
@@ -113,7 +151,97 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader(bool isDark) {
+  Widget _buildCountdownSection(int days, User? user) {
+    final examName = user?.examType ?? 'Examens';
+    final countryFlags = {
+        'ML': '🇲🇱',
+        'BF': '🇧🇫',
+        'NE': '🇳🇪',
+    };
+    final flag = countryFlags[user?.country] ?? '🌍';
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryColor,
+            AppTheme.primaryColor.withBlue(150),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'OBJECTIF RÉUSSITE 🏆',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Plus que $days jours avant les épreuves de $examName $flag !',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'J -',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  '$days',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 24,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.9, 0.9));
+  }
+
+  Widget _buildHeader(bool isDark, User? user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -124,16 +252,18 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Salut tonton ! 👋',
+                  'Salut ${user?.firstName ?? "tonton"} ! 👋',
                   style: TextStyle(
                     fontSize: 16,
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const Text(
-                  'Prêt pour un quiz ?',
-                  style: TextStyle(
+                Text(
+                  user != null
+                      ? 'Prêt pour le ${user.level}${user.series.isNotEmpty ? " (${user.series})" : ""} ?'
+                      : 'Prêt pour un quiz ?',
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
@@ -143,6 +273,34 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Row(
               children: [
+                if (user != null && user.coins > 0) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFACC15).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: const Color(0xFFFACC15).withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('🐚', style: TextStyle(fontSize: 14)), // Cauris emoji
+                        const SizedBox(width: 4),
+                        Text(
+                          '${user.coins}',
+                          style: const TextStyle(
+                            color: Color(0xFFFACC15),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 if (_actualStreak > 0) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -150,9 +308,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
@@ -176,19 +334,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppTheme.primaryColor.withOpacity(0.2),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
                       width: 2,
                     ),
                   ),
                   child: CircleAvatar(
                     radius: 24,
                     backgroundColor: isDark
-                        ? AppTheme.primaryColor.withOpacity(0.2)
+                        ? AppTheme.primaryColor.withValues(alpha: 0.2)
                         : const Color(0xFFE3F2FD),
-                    child: const Icon(
+                    backgroundImage: (user != null && user.avatarUrl.isNotEmpty) ? NetworkImage(user.avatarUrl) : null,
+                    child: (user != null && user.avatarUrl.isEmpty) ? Text(
+                      user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : '?',
+                      style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 20),
+                    ) : (user == null ? const Icon(
                       Icons.person_rounded,
                       color: AppTheme.primaryColor,
-                    ),
+                    ) : null),
                   ),
                 ),
               ],
@@ -199,6 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+/*
   Widget _buildSearchBar(bool isDark) {
     return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -209,7 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border.all(
               color: Theme.of(
                 context,
-              ).dividerColor.withOpacity(isDark ? 0.1 : 0.05),
+              ).dividerColor.withValues(alpha: isDark ? 0.1 : 0.05),
             ),
           ),
           child: Row(
@@ -240,6 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .fadeIn(delay: 200.ms, duration: 400.ms)
         .slideY(begin: 0.2, end: 0);
   }
+*/
 
   Widget _buildToolsGrid() {
     return Column(
@@ -252,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Crée ton Quiz',
                 'Prends une photo',
                 Icons.auto_awesome_rounded,
-                [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+                AppColors.primaryGradient,
                 0,
                 big: true,
                 onTap: () => Navigator.push(
@@ -289,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Tuteur IA',
                 "Pose tes questions",
                 Icons.chat_bubble_rounded,
-                [const Color(0xFFF59E0B), const Color(0xFFFBBF24)],
+                AppColors.goldGradient,
                 2,
                 onTap: () => Navigator.push(
                   context,
@@ -327,9 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
           big: true,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const ExamSetupScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const ExamSetupScreen()),
           ),
         ),
       ],
@@ -357,7 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.05),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
                 ),
               ),
               child: Column(
@@ -368,8 +530,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          gradient[0].withOpacity(0.2),
-                          gradient[1].withOpacity(0.1),
+                          gradient[0].withValues(alpha: 0.2),
+                          gradient[1].withValues(alpha: 0.1),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -397,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.5),
+                            ).colorScheme.onSurface.withValues(alpha: 0.5),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -411,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 14,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.3),
+                          ).colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
                     ],
                   ),
@@ -432,7 +594,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.05),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
         ),
       ),
       child: Column(
@@ -443,7 +605,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -471,7 +633,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.6),
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontSize: 13,
                       ),
                     ),
@@ -568,7 +730,7 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
             ),
           ),
           child: Row(
@@ -578,8 +740,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.primaryColor.withOpacity(0.1),
-                      AppTheme.primaryColor.withOpacity(0.05),
+                      AppTheme.primaryColor.withValues(alpha: 0.1),
+                      AppTheme.primaryColor.withValues(alpha: 0.05),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -617,7 +779,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.05),
+                            ).colorScheme.onSurface.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -625,7 +787,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.6),
+                              ).colorScheme.onSurface.withValues(alpha: 0.6),
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -639,7 +801,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.5),
+                        ).colorScheme.onSurface.withValues(alpha: 0.5),
                         fontSize: 13,
                       ),
                     ),
@@ -651,14 +813,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.03),
+                  ).colorScheme.onSurface.withValues(alpha: 0.03),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.chevron_right_rounded,
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.3),
+                  ).colorScheme.onSurface.withValues(alpha: 0.3),
                   size: 20,
                 ),
               ),

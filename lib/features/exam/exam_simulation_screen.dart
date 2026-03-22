@@ -99,8 +99,8 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: _remainingTime.inMinutes < 5
-                        ? Colors.red.withOpacity(0.1)
-                        : Colors.green.withOpacity(0.1),
+                        ? Colors.red.withValues(alpha: 0.1)
+                        : Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -135,7 +135,7 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.grey.withOpacity(0.1),
+              backgroundColor: Colors.grey.withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppTheme.primaryColor,
               ),
@@ -172,11 +172,11 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -213,9 +213,9 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.05),
+              color: AppTheme.primaryColor.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+              border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +267,7 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(0.05),
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
           ),
         ),
       ),
@@ -348,7 +348,7 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: (isSuccess ? Colors.green : Colors.red).withOpacity(
+                  color: (isSuccess ? Colors.green : Colors.red).withValues(alpha: 
                     0.1,
                   ),
                   shape: BoxShape.circle,

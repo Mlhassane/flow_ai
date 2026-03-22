@@ -7,6 +7,8 @@ import 'package:flow/services/streak_service.dart';
 import 'package:flow/widgets/cauri_icon.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import 'package:flow/services/storage_service.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -17,24 +19,31 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   int _actualStreak = 0;
   bool _isLoading = true;
+  User? _user;
 
   @override
   void initState() {
     super.initState();
-    _loadStreak();
+    _loadData();
   }
 
-  Future<void> _loadStreak() async {
+  Future<void> _loadData() async {
     final streak = await StreakService().getStreak();
+    final user = await StorageService().getUser();
     setState(() {
       _actualStreak = streak;
+      _user = user;
       _isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = User.mock();
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final user = _user ?? User.mock();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -51,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         center: const Alignment(0.8, -0.6),
                         radius: 1.2,
                         colors: [
-                          AppTheme.primaryColor.withOpacity(0.05),
+                          AppTheme.primaryColor.withValues(alpha: 0.05),
                           Colors.transparent,
                         ],
                       ),
@@ -103,21 +112,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppTheme.primaryColor.withOpacity(0.2),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
                   width: 2,
                 ),
               ),
               child: CircleAvatar(
                 radius: 55,
                 backgroundColor: Theme.of(context).colorScheme.surface,
-                backgroundImage: NetworkImage(user.avatarUrl),
+                backgroundImage: user.avatarUrl.isNotEmpty ? NetworkImage(user.avatarUrl) : null,
+                child: user.avatarUrl.isEmpty ? Text(
+                  user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : '?',
+                  style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 40),
+                ) : null,
               ),
             ),
           ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
         ),
         const SizedBox(height: 20),
         Text(
-          user.name,
+          user.fullName,
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -129,7 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -149,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildQuickStat(
               context,
               'Pièces',
-              (user.coins / 1000).toStringAsFixed(1) + 'k',
+              '${(user.coins / 1000).toStringAsFixed(1)}k',
               Icons.stars_rounded,
               Colors.amber,
               isDark,
@@ -158,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 30,
               width: 1,
               margin: const EdgeInsets.symmetric(horizontal: 30),
-              color: Theme.of(context).dividerColor.withOpacity(0.1),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
             ),
             _buildQuickStat(
               context,
@@ -209,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -262,7 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
             ),
           ),
           child: Column(
@@ -271,7 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -292,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontSize: 12,
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.4),
+                  ).colorScheme.onSurface.withValues(alpha: 0.4),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -357,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
             ),
           ),
           child: Column(
@@ -425,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
             ),
           ),
           child: Column(
@@ -478,7 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: LinearProgressIndicator(
                   value: progress / 100,
                   minHeight: 8,
-                  backgroundColor: AppTheme.primaryColor.withOpacity(0.05),
+                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.05),
                   valueColor: AlwaysStoppedAnimation(AppTheme.primaryColor),
                 ),
               ),
@@ -509,7 +522,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           trailing: Switch(
             value: themeService.isDarkMode,
             onChanged: (_) => themeService.toggleTheme(),
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         _buildSettingTile(
@@ -544,7 +557,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.05),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
             ),
           ),
           child: ListTile(
@@ -575,7 +588,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Icons.chevron_right_rounded,
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.2),
+                  ).colorScheme.onSurface.withValues(alpha: 0.2),
                   size: 20,
                 ),
             onTap: trailing == null ? () {} : null,

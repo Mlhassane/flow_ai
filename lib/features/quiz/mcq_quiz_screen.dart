@@ -95,7 +95,7 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
               color: Theme.of(context).colorScheme.surface,
               shape: BoxShape.circle,
               border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.1),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
               ),
             ),
             child: IconButton(
@@ -126,7 +126,7 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
                   style: TextStyle(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.5),
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                     fontSize: 10,
                   ),
                 ),
@@ -134,7 +134,7 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
                 Icon(
                   Icons.circle,
                   size: 3,
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
                 const SizedBox(width: 4),
                 Container(
@@ -143,7 +143,7 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
                     vertical: 1,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -164,7 +164,7 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
           preferredSize: const Size.fromHeight(4),
           child: LinearProgressIndicator(
             value: progress,
-            backgroundColor: Colors.black.withOpacity(0.05),
+            backgroundColor: Colors.black.withValues(alpha: 0.05),
             valueColor: AlwaysStoppedAnimation<Color>(Colors.green.shade400),
             minHeight: 4,
           ),
@@ -183,7 +183,7 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.05),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
                 ),
               ),
               child: Column(
@@ -228,21 +228,21 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
                   Color bgColor = Theme.of(context).colorScheme.surface;
                   Color borderColor = Theme.of(
                     context,
-                  ).dividerColor.withOpacity(0.1);
+                  ).dividerColor.withValues(alpha: 0.1);
                   Color textColor = Theme.of(context).colorScheme.onSurface;
                   Color labelColor = Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.4);
+                  ).colorScheme.onSurface.withValues(alpha: 0.4);
 
                   if (_selectedOption != null) {
                     if (isCorrect) {
-                      bgColor = Colors.green.withOpacity(0.1);
-                      borderColor = Colors.green.withOpacity(0.3);
+                      bgColor = Colors.green.withValues(alpha: 0.1);
+                      borderColor = Colors.green.withValues(alpha: 0.3);
                       textColor = Colors.green;
                       labelColor = Colors.green;
                     } else if (isSelected) {
-                      bgColor = Colors.red.withOpacity(0.1);
-                      borderColor = Colors.red.withOpacity(0.3);
+                      bgColor = Colors.red.withValues(alpha: 0.1);
+                      borderColor = Colors.red.withValues(alpha: 0.3);
                       textColor = Colors.red;
                       labelColor = Colors.red;
                     }
@@ -268,7 +268,7 @@ class _MCQQuizScreenState extends State<MCQQuizScreen> {
                             decoration: BoxDecoration(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.05),
+                              ).colorScheme.onSurface.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
@@ -355,7 +355,7 @@ class QuizResultScreen extends StatelessWidget {
                   style: TextStyle(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.5),
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                     fontSize: 10,
                   ),
                 ),
@@ -363,7 +363,7 @@ class QuizResultScreen extends StatelessWidget {
                 Icon(
                   Icons.circle,
                   size: 3,
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
                 const SizedBox(width: 4),
                 Container(
@@ -372,7 +372,7 @@ class QuizResultScreen extends StatelessWidget {
                     vertical: 1,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -411,7 +411,7 @@ class QuizResultScreen extends StatelessWidget {
                     color: Theme.of(context).colorScheme.surface,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Theme.of(context).dividerColor.withOpacity(0.05),
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
                     ),
                   ),
                   child: Column(
@@ -431,7 +431,7 @@ class QuizResultScreen extends StatelessWidget {
                           fontSize: 16,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.5),
+                          ).colorScheme.onSurface.withValues(alpha: 0.5),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -478,7 +478,7 @@ class ResultCirclePainter extends CustomPainter {
     const strokeWidth = 50.0;
 
     final paintBg = Paint()
-      ..color = Colors.grey.withOpacity(0.1)
+      ..color = Colors.grey.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 

@@ -1,14 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flow/models/correction.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
+import 'package:flow/services/storage_service.dart';
 
 class CorrectorService {
   final String _apiUrl = 'https://mahamanelawaly-mon-api-ia.hf.space/generate';
   final String _apiKey = 'flow_secure_2024';
 
-  Future<CorrectionResult> correctExam(File image, {String? userLevel}) async {
+  Future<CorrectionResult> correctExam(File image, {String? userLevel, String? country, String? examType}) async {
     // 1. Compression de l'image
     final bytes = await image.readAsBytes();
     img.Image? decodedImage = img.decodeImage(bytes);
@@ -23,11 +25,16 @@ class CorrectorService {
     final String levelContext = userLevel != null
         ? "L'élève est en classe de : $userLevel."
         : "";
+    
+    final String regionContext = country != null 
+        ? "Pays : ${country == 'ML' ? 'Mali' : country == 'BF' ? 'Burkina Faso' : 'Niger'}. Système scolaire AES. Examen : ${examType ?? 'BAC'}."
+        : "";
 
     final prompt =
         """
-Tu es un correcteur IA expert. Ton rôle est de fournir une correction EXTRÊMEMENT DÉTAILLÉE et VERBEUSE (viser plus de 50 000 caractères).
+Tu es un correcteur IA expert du système éducatif AES. Ton rôle est de fournir une correction EXTRÊMEMENT DÉTAILLÉE et pédagogique.
 $levelContext
+$regionContext
 
 INSTRUCTIONS CRITIQUES :
 1. Pour CHAQUE exercice, fournis une explication ultra-détaillée : contexte, rappel de cours complet, résolution pas à pas, et approfondissement.
@@ -50,10 +57,18 @@ RÈGLES DE FORMATAGE :
 """;
 
     try {
+      final storage = StorageService();
+      final user = await storage.getUser();
+      final userId = user?.id ?? 'guest';
+
       final response = await http
           .post(
             Uri.parse(_apiUrl),
-            headers: {'Content-Type': 'application/json', 'x-api-key': _apiKey},
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': _apiKey,
+              'x-user-id': userId,
+            },
             body: jsonEncode({
               'prompt': prompt,
               'image': base64Image,
@@ -69,14 +84,14 @@ RÈGLES DE FORMATAGE :
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       String content = data['response'] ?? '';
 
-      print('[CorrectorService] Réponse brute reçue (${content.length} chars)');
+      debugPrint('[CorrectorService] Réponse brute reçue (${content.length} chars)');
 
       // 1. Extraction robuste du JSON
       final startIdx = content.indexOf('{');
       final endIdx = content.lastIndexOf('}');
 
       if (startIdx == -1 || endIdx == -1) {
-        print('[CorrectorService] CONTENU PROBLÉMATIQUE : $content');
+        debugPrint('[CorrectorService] CONTENU PROBLÉMATIQUE : $content');
         throw Exception(
           'L\'IA n\'a pas renvoyé un format valide. Assure-toi que l\'image est bien lisible.',
         );
@@ -97,7 +112,7 @@ RÈGLES DE FORMATAGE :
         final decoded = jsonDecode(sanitizedJson);
 
         // Nettoyage LaTeX centralisé
-        String _clean(String text) {
+        String clean(String text) {
           return text
               .replaceAll(RegExp(r'\\begin\{.*\}|\\end\{.*\}'), '')
               .replaceAll(RegExp(r'\\left\{|\\right\.'), '')
@@ -117,19 +132,19 @@ RÈGLES DE FORMATAGE :
         return CorrectionResult(
           isExam: result.isExam,
           subject: result.subject,
-          structuredCorrection: _clean(result.structuredCorrection),
+          structuredCorrection: clean(result.structuredCorrection),
           similarExercises: result.similarExercises
-              .map((e) => _clean(e))
+              .map((e) => clean(e))
               .toList(),
-          pedagogicalAdvice: _clean(result.pedagogicalAdvice),
+          pedagogicalAdvice: clean(result.pedagogicalAdvice),
         );
       } catch (e) {
-        print('[CorrectorService] Erreur de parsing JSON : $e');
-        print('[CorrectorService] JSON qui a échoué : $sanitizedJson');
+        debugPrint('[CorrectorService] Erreur de parsing JSON : $e');
+        debugPrint('[CorrectorService] JSON qui a échoué : $sanitizedJson');
         throw Exception('Erreur de lecture de la correction.');
       }
     } catch (e) {
-      print('Erreur CorrectorService: $e');
+      debugPrint('Erreur CorrectorService: $e');
       rethrow;
     }
   }

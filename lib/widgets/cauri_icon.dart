@@ -66,7 +66,7 @@ class CauriPainter extends CustomPainter {
 
     // 3. Petits cercles caractéristiques sur les bords
     final dotPaint = Paint()
-      ..color = color.withOpacity(0.6)
+      ..color = color.withValues(alpha: 0.6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = size.width * 0.04;
 

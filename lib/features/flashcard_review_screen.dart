@@ -70,7 +70,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
               color: Theme.of(context).colorScheme.surface,
               shape: BoxShape.circle,
               border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.1),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
               ),
             ),
             child: IconButton(
@@ -101,7 +101,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   style: TextStyle(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.5),
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                 ),
@@ -109,7 +109,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                 Icon(
                   Icons.circle,
                   size: 4,
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
                 const SizedBox(width: 4),
                 Container(
@@ -118,7 +118,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -140,7 +140,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
           child:
               LinearProgressIndicator(
                 value: progress,
-                backgroundColor: Colors.black.withOpacity(0.05),
+                backgroundColor: Colors.black.withValues(alpha: 0.05),
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade400),
                 minHeight: 4,
               ).animate().fadeIn().scaleX(
@@ -190,7 +190,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   Expanded(
                     child: _buildActionButton(
                       label: 'À revoir',
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       textColor: Colors.red,
                       onPressed: () => _handleAction('revoir'),
                     ),
@@ -199,7 +199,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   Expanded(
                     child: _buildActionButton(
                       label: 'Correct',
-                      color: Colors.green.withOpacity(0.1),
+                      color: Colors.green.withValues(alpha: 0.1),
                       textColor: Colors.green,
                       onPressed: () => _handleAction('correct'),
                     ),
@@ -208,7 +208,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
                   Expanded(
                     child: _buildActionButton(
                       label: 'Facile',
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withValues(alpha: 0.1),
                       textColor: Colors.blue,
                       onPressed: () => _handleAction('easy'),
                     ),
@@ -249,7 +249,7 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -338,9 +338,9 @@ class _FlashcardReviewScreenState extends State<FlashcardReviewScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.1)),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [

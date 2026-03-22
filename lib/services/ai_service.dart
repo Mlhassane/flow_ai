@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 // import 'dart:convert';
 // import 'dart:io';
 // import 'package:flow/models/quiz_card.dart';
@@ -43,7 +44,7 @@
 // ]
 // """;
 
-//     print('--- [AIService] Traitement et compression de l\'image... ---');
+//     debugPrint('--- [AIService] Traitement et compression de l\'image... ---');
 
 //     // 1. Compression de l'image pour optimiser l'envoi
 //     final bytes = await image.readAsBytes();
@@ -62,7 +63,7 @@
 //     final compressedBytes = img.encodeJpg(decodedImage, quality: 70);
 //     final base64Image = base64Encode(compressedBytes);
 
-//     print('--- [AIService] Image compressée. Envoi vers $_apiUrl ---');
+//     debugPrint('--- [AIService] Image compressée. Envoi vers $_apiUrl ---');
 
 //     try {
 //       final response = await http.post(
@@ -79,7 +80,7 @@
 //         }),
 //       );
 
-//       print('--- [AIService] Code statut API: ${response.statusCode} ---');
+//       debugPrint('--- [AIService] Code statut API: ${response.statusCode} ---');
 
 //       if (response.statusCode != 200) {
 //         throw Exception('Erreur API Privée: ${response.body}');
@@ -94,7 +95,7 @@
 
 //       String content = data['response'];
 
-//       print('--- [AIService] Réponse brute reçue ---');
+//       debugPrint('--- [AIService] Réponse brute reçue ---');
 
 //       // 1. Extraction de la zone JSON (Tableau [])
 //       int startIdx = content.indexOf('[');
@@ -130,7 +131,7 @@
 
 //       String jsonString = buffer.toString();
 
-//       print('--- [AIService] JSON nettoyé à parser: $jsonString ---');
+//       debugPrint('--- [AIService] JSON nettoyé à parser: $jsonString ---');
 
 //       dynamic parsedJson = jsonDecode(jsonString);
 //       List<dynamic> jsonList;
@@ -145,7 +146,7 @@
 //         throw Exception('Format JSON inattendu');
 //       }
 
-//       print('--- [AIService] ${jsonList.length} questions trouvées ---');
+//       debugPrint('--- [AIService] ${jsonList.length} questions trouvées ---');
 
 //       return jsonList.map((item) {
 //         String q = item['question']?.toString() ?? 'Question illisible';
@@ -176,7 +177,7 @@
 //         );
 //       }).toList();
 //     } catch (e) {
-//       print('--- [AIService] ERREUR API PRIVÉE : $e ---');
+//       debugPrint('--- [AIService] ERREUR API PRIVÉE : $e ---');
 //       rethrow;
 //     }
 //   }
@@ -186,6 +187,7 @@ import 'dart:io';
 import 'package:flow/models/quiz_card.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
+import 'package:flow/services/storage_service.dart';
 
 class AIService {
   // ✅ SÉCURITÉ : Ne jamais hardcoder la clé API côté client.
@@ -219,13 +221,19 @@ class AIService {
     File image, {
     int numQuestions = 5,
     String? userLevel,
+    String? country,
+    String? examType,
   }) async {
     final String levelContext =
         userLevel != null ? "Niveau de l'élève : $userLevel." : "";
 
-    final prompt = _buildPrompt(numQuestions, levelContext);
+    final String regionContext = country != null
+        ? "Pays : ${country == 'ML' ? 'Mali' : country == 'BF' ? 'Burkina Faso' : 'Niger'}. Système scolaire AES. Examen préparé : ${examType ?? 'BAC'}."
+        : "";
 
-    print('[AIService] Compression de l\'image...');
+    final prompt = _buildPrompt(numQuestions, "$levelContext $regionContext");
+
+    debugPrint('[AIService] Compression de l\'image...');
     final base64Image = await _compressAndEncodeImage(image);
 
     // ✅ Vérification de taille avant envoi
@@ -237,7 +245,7 @@ class AIService {
       );
     }
 
-    print('[AIService] Envoi vers $_apiUrl (${sizeKb.toStringAsFixed(0)} KB)');
+    debugPrint('[AIService] Envoi vers $_apiUrl (${sizeKb.toStringAsFixed(0)} KB)');
 
     final responseBody = await _postWithRetry(
       prompt: prompt,
@@ -303,20 +311,25 @@ FORMAT JSON (tableau uniquement, sans texte avant ou après) :
       'num_questions': numQuestions,
       'task': 'quiz',
     });
+    final storage = StorageService();
+    final user = await storage.getUser();
+    final userId = user?.id ?? 'guest';
+
     final headers = {
       'Content-Type': 'application/json',
       'x-api-key': _apiKey,
+      'x-user-id': userId,
     };
 
     for (int attempt = 1; attempt <= _maxRetries; attempt++) {
       try {
-        print('[AIService] Tentative $attempt/$_maxRetries...');
+        debugPrint('[AIService] Tentative $attempt/$_maxRetries...');
 
         final response = await http
             .post(url, headers: headers, body: body)
             .timeout(_requestTimeout);
 
-        print('[AIService] Statut HTTP : ${response.statusCode}');
+        debugPrint('[AIService] Statut HTTP : ${response.statusCode}');
 
         // ✅ Gestion explicite des codes HTTP d'erreur
         if (response.statusCode == 401) {
@@ -324,7 +337,7 @@ FORMAT JSON (tableau uniquement, sans texte avant ou après) :
         }
         if (response.statusCode == 429) {
           final retryAfter = attempt * 5;
-          print('[AIService] Rate limit (429). Attente ${retryAfter}s...');
+          debugPrint('[AIService] Rate limit (429). Attente ${retryAfter}s...');
           await Future.delayed(Duration(seconds: retryAfter));
           continue;
         }
@@ -355,7 +368,7 @@ FORMAT JSON (tableau uniquement, sans texte avant ou après) :
         await _exponentialDelay(attempt);
       } on HttpException catch (e) {
         if (attempt == _maxRetries) rethrow;
-        print('[AIService] HttpException : $e. Nouvelle tentative...');
+        debugPrint('[AIService] HttpException : $e. Nouvelle tentative...');
         await _exponentialDelay(attempt);
       } on Exception {
         rethrow; // Ne pas réessayer sur erreurs logiques (401, format, etc.)
@@ -367,19 +380,19 @@ FORMAT JSON (tableau uniquement, sans texte avant ou après) :
 
   Future<void> _exponentialDelay(int attempt) async {
     final delay = Duration(seconds: 2 * attempt);
-    print('[AIService] Attente ${delay.inSeconds}s avant nouvelle tentative...');
+    debugPrint('[AIService] Attente ${delay.inSeconds}s avant nouvelle tentative...');
     await Future.delayed(delay);
   }
 
   // ─── Parsing & nettoyage de la réponse ────────────────────────────────────
   List<QuizCard> _parseQuizResponse(Map<String, dynamic> data) {
     final String content = data['response'] as String? ?? '';
-    print('[AIService] Réponse brute reçue (${content.length} chars)');
+    debugPrint('[AIService] Réponse brute reçue (${content.length} chars)');
 
     final String jsonRaw = _extractJsonArray(content);
     final String jsonFixed = _repairJsonBackslashes(jsonRaw);
 
-    print('[AIService] JSON nettoyé, parsing...');
+    debugPrint('[AIService] JSON nettoyé, parsing...');
 
     dynamic parsed;
     try {
@@ -389,7 +402,7 @@ FORMAT JSON (tableau uniquement, sans texte avant ou après) :
     }
 
     final List<dynamic> jsonList = _normalizeJsonList(parsed);
-    print('[AIService] ${jsonList.length} questions trouvées.');
+    debugPrint('[AIService] ${jsonList.length} questions trouvées.');
 
     return jsonList.map((item) => _itemToQuizCard(item)).toList();
   }

@@ -2,9 +2,37 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flow/models/quiz_deck.dart';
 import 'package:flow/models/quiz_card.dart';
+import 'package:flow/models/user.dart';
 
 class StorageService {
   static const String _keyDecks = 'quiz_decks';
+  static const String _keyUser = 'user_profile';
+  static const String _keyOnboardingComplete = 'onboarding_complete';
+
+  // État de l'onboarding
+  Future<bool> isOnboardingComplete() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyOnboardingComplete) ?? false;
+  }
+
+  Future<void> setOnboardingComplete(bool complete) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyOnboardingComplete, complete);
+  }
+
+  // Sauvegarder l'utilisateur
+  Future<void> saveUser(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyUser, jsonEncode(user.toJson()));
+  }
+
+  // Récupérer l'utilisateur
+  Future<User?> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? data = prefs.getString(_keyUser);
+    if (data == null) return null;
+    return User.fromJson(jsonDecode(data));
+  }
 
   // Sauvegarder un nouveau deck
   Future<void> saveDeck(QuizDeck deck) async {

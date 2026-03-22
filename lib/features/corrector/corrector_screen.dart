@@ -10,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flow/widgets/cauri_icon.dart';
 import 'package:flow/models/user.dart';
+import 'package:provider/provider.dart';
+import 'package:flow/providers/user_provider.dart';
 
 class CorrectorScreen extends StatefulWidget {
   const CorrectorScreen({super.key});
@@ -22,12 +24,16 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
   final CorrectorService _correctorService = CorrectorService();
   final StorageService _storageService = StorageService();
   final ImagePicker _picker = ImagePicker();
-  final User _currentUser = User.mock();
 
   File? _selectedImage;
   CorrectionResult? _result;
   bool _isLoading = false;
   bool _isSaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final XFile? image = await _picker.pickImage(source: source);
@@ -44,18 +50,33 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
   Future<void> _processImage() async {
     if (_selectedImage == null) return;
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    if (!userProvider.hasEnoughCauris(UserProvider.costCorrection)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pas assez de Cauris ! Il te faut ${UserProvider.costCorrection} 🐚'))
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
       final result = await _correctorService.correctExam(
         _selectedImage!,
-        userLevel: _currentUser.level,
+        userLevel: userProvider.user?.level,
+        country: userProvider.user?.country,
+        examType: userProvider.user?.examType,
       );
+      
+      // On dépense SEULEMENT si réussi
+      await userProvider.spendCauris(UserProvider.costCorrection);
       setState(() {
         _result = result;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
@@ -122,7 +143,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
                   height: 300,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppTheme.primaryColor.withOpacity(0.05),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   ),
                 ),
               )
@@ -147,7 +168,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -167,7 +188,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
               'Prends en photo ton sujet d\'examen. L\'IA va le corriger et t\'expliquer les points clés.',
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
               textAlign: TextAlign.center,
             ),
@@ -206,7 +227,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
           Text(
             'Cela peut prendre quelques secondes',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
             ),
           ),
         ],
@@ -251,7 +272,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Row(
@@ -296,14 +317,14 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
               letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 12),
           ..._result!.similarExercises
               .map((exo) => _buildExerciseCard(exo))
-              .toList(),
+              ,
           const SizedBox(height: 40),
           _buildActionButton(
             icon: Icons.refresh_rounded,
@@ -349,9 +370,9 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
             : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: isBlackboard
-            ? Border.all(color: color.withOpacity(0.3), width: 1)
+            ? Border.all(color: color.withValues(alpha: 0.3), width: 1)
             : Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.05),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
               ),
       ),
       child: Column(
@@ -362,7 +383,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -384,7 +405,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
               fontSize: 15,
               height: 1.6,
               fontFamily: isBlackboard ? 'monospace' : null,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -398,9 +419,9 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.05),
+        color: Colors.green.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green.withOpacity(0.2)),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,7 +456,7 @@ class _CorrectorScreenState extends State<CorrectorScreen> {
           border: isPrimary
               ? null
               : Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
         ),
         child: Row(

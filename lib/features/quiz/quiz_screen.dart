@@ -27,8 +27,9 @@ class _QuizScreenState extends State<QuizScreen> {
     setState(() {
       if (quality == ReviewQuality.good) _correctCount++;
       if (quality == ReviewQuality.easy) _easyCount++;
-      if (quality == ReviewQuality.forgot || quality == ReviewQuality.hard)
+      if (quality == ReviewQuality.forgot || quality == ReviewQuality.hard) {
         _revoirCount++;
+      }
 
       if (_currentIndex < widget.quizCards.length - 1) {
         _currentIndex++;
@@ -100,7 +101,7 @@ class _QuizScreenState extends State<QuizScreen> {
           child:
               LinearProgressIndicator(
                 value: progress,
-                backgroundColor: Colors.black.withOpacity(0.05),
+                backgroundColor: Colors.black.withValues(alpha: 0.05),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   AppTheme.primaryColor,
                 ),
@@ -245,7 +246,7 @@ class _QuizScreenState extends State<QuizScreen> {
         Expanded(
           child: _buildReviewButton(
             'Plus tard',
-            Colors.red.withOpacity(0.1),
+            Colors.red.withValues(alpha: 0.1),
             Colors.red,
             ReviewQuality.hard,
             card,
@@ -255,7 +256,7 @@ class _QuizScreenState extends State<QuizScreen> {
         Expanded(
           child: _buildReviewButton(
             'Bien',
-            Colors.green.withOpacity(0.1),
+            Colors.green.withValues(alpha: 0.1),
             Colors.green,
             ReviewQuality.good,
             card,
@@ -265,7 +266,7 @@ class _QuizScreenState extends State<QuizScreen> {
         Expanded(
           child: _buildReviewButton(
             'Facile',
-            Colors.blue.withOpacity(0.1),
+            Colors.blue.withValues(alpha: 0.1),
             Colors.blue,
             ReviewQuality.easy,
             card,
@@ -321,7 +322,7 @@ class _QuizScreenState extends State<QuizScreen> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.05),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
           width: 1,
         ),
       ),
@@ -337,7 +338,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: TextStyle(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.4),
+                  ).colorScheme.onSurface.withValues(alpha: 0.4),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 2,
@@ -373,7 +374,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: TextStyle(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.4),
+                  ).colorScheme.onSurface.withValues(alpha: 0.4),
                   fontSize: 12,
                 ),
               ),
@@ -395,7 +396,7 @@ class _QuizScreenState extends State<QuizScreen> {
             : const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.05),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
         ),
       ),
       child: Stack(
@@ -480,7 +481,7 @@ class _QuizScreenState extends State<QuizScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -569,9 +570,9 @@ class _QuizScreenState extends State<QuizScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.1)),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
